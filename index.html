@@ -32,8 +32,8 @@
         var scoreText;
 
         function preload() {
-            this.load.image('sky', 'assets/space3.png');
-            this.load.image('diamond', 'assets/diamond.png');            
+            this.load.image('space', 'assets/space3.png');
+            this.load.image('diamond', 'assets/diamond.png');
             this.load.image('logo', 'assets/phaser3-logo.png');
             this.load.image('red', 'assets/red.png');
             this.load.image('sky', 'assets/sky.png');
@@ -51,7 +51,7 @@
 
         function create() {
             var sky = this.add.image(400, 300, 'sky');
-            sky.setInteractive();
+            //sky.setInteractive();
 
             var particles = this.add.particles('red');
 
@@ -61,28 +61,45 @@
                 blendMode: 'ADD'
             });
 
-            emitter.startFollow(logo);
+            //emitter.startFollow(logo);
 
             platforms = this.physics.add.staticGroup();
 
             //platforms.create(400, 568, 'ground').setScale(4).refreshBody().setTint(0xffff00);
 
 
-            diamond = this.physics.add.sprite(400, -200, 'diamond');
+            shards = this.physics.add.group();
+
+
+            diamond = this.physics.add.image(400, -200, 'diamond');
             diamond.setSize(4, 4, true);
             diamond.setScale(.5)
-            this.physics.add.collider(diamond, platforms);
-            diamond.on('pointerdown', function () {
-                this.setTint(Math.random() * 16000000);
-                //  So something happens for canvas
-                this.x += 2;
+            diamond.setInteractive()
+            diamond.on('pointerdown', function (pointer, targets) {
+                var shard = shards.create(400,450, 'star');
+                shard.setBounce(0);
+                shard.setCollideWorldBounds(true);
+                shard.setVelocity(Phaser.Math.Between(100, 200), Phaser.Math.Between(-500, -900));
+            });
 
-            });            
+
+
+            this.physics.add.collider(shards, platforms, function(shard, platform) {
+                shard.setVelocity(0,0)
+            });
+
+            this.physics.add.collider(diamond, platforms);
+
+
+
+
+
 
 
             let rect1 = this.add.rectangle(0, 595, 800, 100, 0xffffff);
-            rect1.setOrigin(0,0)
+            rect1.setOrigin(0, 0);
             platforms.add(rect1)
+
 
             /**
             platforms.create(600, 400, 'ground');
@@ -90,16 +107,29 @@
             platforms.create(750, 120, 'ground');
             **/
 
-            var logo = this.physics.add.image(400, 100, 'logo');
-            logo.setVelocity(400, 100);
-            logo.setBounce(1, 1);
-            logo.setCollideWorldBounds(true);
+            //var logo = this.physics.add.image(400, 100, 'logo');
+            //logo.setVelocity(400, 100);
+            //logo.setBounce(1, 1);
+            //logo.setCollideWorldBounds(true);
 
 
             player = this.physics.add.sprite(100, 450, 'dude');
 
+            player.setInteractive()
+            player.on('pointerdown', function (pointer, targets) {
+                alert('click')
+                //var shard = shards.create(x, 16, 'star');
+                //shard.setBounce(1);
+                //shard.setCollideWorldBounds(true);
+                //shard.setVelocity(Phaser.Math.Between(20, 200), Phaser.Math.Between(-20, -50));
+            });
+
+
             player.setBounce(0.2);
             player.setCollideWorldBounds(true);
+
+
+
             this.anims.create({
                 key: 'left',
                 frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
@@ -121,7 +151,7 @@
             });
 
             this.physics.add.collider(player, platforms);
-
+/**
             stars = this.physics.add.group({
                 key: 'star',
                 repeat: 11,
@@ -129,11 +159,11 @@
             });
 
             stars.children.iterate(function (child) {
-                child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
+                //child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
             });
             this.physics.add.collider(stars, platforms);
             this.physics.add.overlap(player, stars, collectStar, null, this);
-
+**/
             scoreText = this.add.text(16, 416, 'score: 0', { fontSize: '32px', fill: '#000' });
 
             bombs = this.physics.add.group();
@@ -173,8 +203,8 @@
         }
 
         function update() {
-             	
-        //    this.input.onObjectClicked('gameobjectdown',this.onObjectClicked); 
+
+            //    this.input.onObjectClicked('gameobjectdown',this.onObjectClicked); 
 
             cursors = this.input.keyboard.createCursorKeys();
             if (cursors.left.isDown) {

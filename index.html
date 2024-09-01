@@ -34,6 +34,7 @@
         function preload() {
             this.load.image('space', 'assets/space3.png');
             this.load.image('diamond', 'assets/diamond.png');
+            this.load.image('bank', 'assets/bank.png');
             this.load.image('logo', 'assets/phaser3-logo.png');
             this.load.image('red', 'assets/red.png');
             this.load.image('sky', 'assets/sky.png');
@@ -50,7 +51,7 @@
         }
 
         function create() {
-            var sky = this.add.image(400, 300, 'sky');
+            var sky = this.add.image(400, 300, 'sky').setScale(10);
             //sky.setInteractive();
 
             var particles = this.add.particles('red');
@@ -62,7 +63,6 @@
             });
 
 
-
             platforms = this.physics.add.staticGroup();
 
             //platforms.create(400, 568, 'ground').setScale(4).refreshBody().setTint(0xffff00);
@@ -71,15 +71,31 @@
             shards = this.physics.add.group();
 
 
+            this.cameras.main.setBounds(0, 0, 2048, 600)
+//            this.cameras.main.setZoom(4)
+   		    this.cameras.main.centerOn(0,0)
+            //https://newdocs.phaser.io/docs/3.70.0/focus/Phaser.Caeras.Scene2D.Camera-pan
+
+            //this.cameras.main.pan(703, 0, 20000, 'Elastic');
+
             diamond = this.physics.add.image(400, -200, 'diamond');
             diamond.setSize(4, 4, true);
             diamond.setScale(.5)
             diamond.setInteractive()
+            cam = this.cameras.main
+
+
+            bank = this.add.image(900, 520, 'bank');
+            bank.setSize(4, 4, true);
+            bank.setScale(.25)
+
             diamond.on('pointerdown', function (pointer, targets) {
                 var shard = shards.create(400,450, 'star');
                 shard.setBounce(0);
                 shard.setCollideWorldBounds(true);
                 shard.setVelocity(Phaser.Math.Between(100, 200), Phaser.Math.Between(-500, -900));
+                cam.pan(630, 0, 2000);
+                //cam.zoomTo(.75)
             });
 
             emitter.startFollow(diamond);
@@ -97,7 +113,7 @@
 
 
 
-            let rect1 = this.add.rectangle(0, 595, 800, 100, 0xffffff);
+            let rect1 = this.add.rectangle(0, 595, 8000, 100, 0xffffff);
             rect1.setOrigin(0, 0);
             platforms.add(rect1)
 
@@ -204,6 +220,10 @@
         }
 
         function update() {
+
+
+
+
 
             //    this.input.onObjectClicked('gameobjectdown',this.onObjectClicked); 
 

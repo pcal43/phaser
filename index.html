@@ -16,7 +16,7 @@
             physics: {
                 default: 'arcade',
                 arcade: {
-                    //debug: true,
+                    debug: true,
                     gravity: { y: 900 }
 
                 }
@@ -27,6 +27,9 @@
                 update: update
             }
         };
+
+
+        const UNICORN_SPEED = 350
 
         var game = new Phaser.Game(config);
 
@@ -43,9 +46,8 @@
             this.load.image('ground', 'assets/platform.png');
             this.load.image('star', 'assets/star.png');
             this.load.image('bomb', 'assets/bomb.png');
-            this.load.spritesheet('dude', 'assets/dude.png',
-                { frameWidth: 32, frameHeight: 48 }
-            );
+            this.load.spritesheet('dude', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
+            this.load.spritesheet('unicorn', 'assets/unicorn.png', { frameWidth: 17, frameHeight: 16 });
         }
 
         function onObjectClicked(pointer, gameObject) {
@@ -70,13 +72,14 @@
             //platforms.create(400, 568, 'ground').setScale(4).refreshBody().setTint(0xffff00);
 
 
-            shards = this.physics.add.group();
+            groundShards = this.physics.add.group();
+            flyingShards = this.physics.add.group();
 
 
 
             this.cameras.main.setBounds(0, 0, 2048, 600)
-//            this.cameras.main.setZoom(4)
-   		    this.cameras.main.centerOn(0,0)
+            //            this.cameras.main.setZoom(4)
+            this.cameras.main.centerOn(0, 0)
             //https://newdocs.phaser.io/docs/3.70.0/focus/Phaser.Caeras.Scene2D.Camera-pan
 
             //this.cameras.main.pan(703, 0, 20000, 'Elastic');
@@ -88,7 +91,7 @@
             diamond.setInteractive()
             emitter.startFollow(diamond);
             diamond.on('pointerdown', function (pointer, targets) {
-                var shard = shards.create(400, 500, 'diamond');
+                var shard = flyingShards.create(400, 500, 'diamond');
                 shard.setBounce(0);
                 //shard.setCollideWorldBounds(true);
                 shard.setBlendMode(Phaser.BlendModes.ADD);
@@ -99,7 +102,11 @@
                 cam.pan(630, 0, 2000);
 
                 shard.on('pointerdown', function (pointer, targets) {
-                    shard.setVelocity(Phaser.Math.Between(100, 200), Phaser.Math.Between(-500, -900));
+                    if (groundShards.contains(shard)) {
+                        groundShards.remove(shard)
+                        flyingShards.add(shard)
+                        shard.setVelocity(Phaser.Math.Between(100, 200), Phaser.Math.Between(-500, -900))
+                    }
                 })
                 //cam.zoomTo(.75)
             });
@@ -107,7 +114,7 @@
 
             banks = this.physics.add.group();
             //bank = this.physics.add.image(900, 520, 'bank');
-            bank = banks.create(915, 520, 'bank');            
+            bank = banks.create(915, 520, 'bank');
             //banks.add(bank)            
             bank.setSize(bank.width - 200, bank.height - 200, true);
             bank.setScale(.25)
@@ -115,20 +122,37 @@
             bank.body.allowGravity = false;
 
 
-            this.physics.add.collider(shards, banks, function(shard, bank) {
+            this.physics.add.collider(flyingShards, banks, function (shard, bank) {
                 shard.disableBody(true, true);
-                score++
-                updateScore()
+                updateScore(1)
             });
 
 
 
-            this.physics.add.collider(shards, platforms, function(shard, platform) {
-                shard.setVelocity(0,0)
+            unicorns = this.physics.add.group();
+            returningUnicorns = this.physics.add.group();
+
+
+            this.physics.add.collider(flyingShards, platforms, function (shard, platform) {
+                flyingShards.remove(shard)
+                groundShards.add(shard)
+                shard.setVelocity(0, 0)
             });
 
+            this.physics.add.collider(groundShards, platforms);
             this.physics.add.collider(diamond, platforms);
-
+            this.physics.add.collider(unicorns, platforms);
+            this.physics.add.collider(returningUnicorns, platforms);            
+            this.physics.add.collider(unicorns, groundShards, function (unicorn, shard) {
+                shard.setVelocity(0, 0)
+                flyingShards.add(shard)
+                groundShards.remove(shard)
+                shard.setVelocity(Phaser.Math.Between(100, 200), Phaser.Math.Between(-500, -900));
+                unicorns.remove(unicorn)
+                returningUnicorns.add(unicorn)
+                unicorn.setVelocityX(UNICORN_SPEED)
+                unicorn.setFlipX(!unicorn.flipX)
+            });
 
 
 
@@ -152,21 +176,19 @@
             //logo.setCollideWorldBounds(true);
 
 
-            player = this.physics.add.sprite(100, 450, 'dude');
-
-            player.setInteractive()
-            player.on('pointerdown', function (pointer, targets) {
-                alert('click')
-                //var shard = shards.create(x, 16, 'star');
-                //shard.setBounce(1);
-                //shard.setCollideWorldBounds(true);
-                //shard.setVelocity(Phaser.Math.Between(20, 200), Phaser.Math.Between(-20, -50));
+            this.anims.create({
+                key: 'right',
+                frames: this.anims.generateFrameNumbers('unicorn', { start: 0, end: 3 }),
+                frameRate: 10,
+                repeat: -1
             });
 
 
+
+            player = this.physics.add.sprite(100, 450, 'dude');
+            player.setInteractive()
             player.setBounce(0.2);
             player.setCollideWorldBounds(true);
-
 
 
             this.anims.create({
@@ -190,19 +212,19 @@
             });
 
             this.physics.add.collider(player, platforms);
-/**
-            stars = this.physics.add.group({
-                key: 'star',
-                repeat: 11,
-                setXY: { x: 12, y: 0, stepX: 70 }
-            });
-
-            stars.children.iterate(function (child) {
-                //child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
-            });
-            this.physics.add.collider(stars, platforms);
-            this.physics.add.overlap(player, stars, collectStar, null, this);
-**/
+            /**
+                        stars = this.physics.add.group({
+                            key: 'star',
+                            repeat: 11,
+                            setXY: { x: 12, y: 0, stepX: 70 }
+                        });
+            
+                        stars.children.iterate(function (child) {
+                            //child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
+                        });
+                        this.physics.add.collider(stars, platforms);
+                        this.physics.add.overlap(player, stars, collectStar, null, this);
+            **/
 
 
             var scoreIcon = this.add.image(900, 30, 'diamond');
@@ -211,12 +233,51 @@
             scoreIcon.setScale(.1)
             scoreText = this.add.text(930, 8, '0', { fontSize: '48px', fill: '#000' });
 
+            //unicornButton = this.physics.add.sprite(900, 50, 'unicorn');
+            unicornButton = this.add.sprite(900, 100, 'unicorn');
+            //unicornButton = this.add.sprite(100, 70, 'unicorn');
+            //unicornButton.frame = 0
+            unicornButton.setScale(3)
+            unicornButton.setFlipX(true);
+            unicornButton.setInteractive()
+            this.add.text(930, 100, '10', { fontSize: '24px', fill: '#000' });
+            var costIcon = this.add.image(975, 110, 'diamond');
+            costIcon.setBlendMode(Phaser.BlendModes.ADD);
+            costIcon.setAlpha(0.5);
+            costIcon.setScale(.05)
+
+
+            this.add.text(930, 8, '0', { fontSize: '48px', fill: '#000' });
+
+
+            phys = this.physics
+            unis = unicorns
+            unicornButton.on('pointerdown', function (pointer, targets) {
+                if (true || score >= 10) {
+                    updateScore(-10)
+
+                    unicorn = phys.add.sprite(1100, 450, 'unicorn');
+                    unis.add(unicorn)
+
+                    //var unicorn = unicorns.create(400, 450, 'unicorn');
+                    
+                    unicorn.setBounce(0);
+                    unicorn.setScale(4)
+                    unicorn.setFlipX(true);
+                    unicorn.setVelocity(-350, 0)
+                    unicorn.anims.play('right', true);
+                }
+            });
+
+
+
             bombs = this.physics.add.group();
             this.physics.add.collider(bombs, platforms);
             this.physics.add.collider(player, bombs, hitBomb, null, this);
         }
 
-        function updateScore() {
+        function updateScore(delta) {
+            score += delta
             scoreText.setText(score);
         }
 
@@ -254,6 +315,24 @@
 
         function update() {
 
+            unicorns.children.iterate(function (uni) {
+                // make the unicorn turn around if it is off the world boundaries
+                if (typeof uni !== 'undefined' && uni.x < 0) {
+                    unicorns.remove(uni)
+                    returningUnicorns.add(uni)
+                    uni.body.setVelocityX(UNICORN_SPEED)
+                    uni.setFlipX(false)
+                }
+            });
+            returningUnicorns.children.iterate(function (uni) {
+                // make the unicorn turn around if it is off the world boundaries
+                if (typeof uni !== 'undefined' && uni.x > 1200) {
+                    returningUnicorns.remove(uni)
+                    unicorns.add(uni)
+                    uni.body.setVelocityX(-UNICORN_SPEED)
+                    uni.setFlipX(true)
+                }
+            });
 
 
 

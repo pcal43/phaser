@@ -16,7 +16,9 @@
             physics: {
                 default: 'arcade',
                 arcade: {
+                    //debug: true,
                     gravity: { y: 900 }
+
                 }
             },
             scene: {
@@ -28,7 +30,7 @@
 
         var game = new Phaser.Game(config);
 
-        var score = 0;
+        var score = 0
         var scoreText;
 
         function preload() {
@@ -71,34 +73,54 @@
             shards = this.physics.add.group();
 
 
+
             this.cameras.main.setBounds(0, 0, 2048, 600)
 //            this.cameras.main.setZoom(4)
    		    this.cameras.main.centerOn(0,0)
             //https://newdocs.phaser.io/docs/3.70.0/focus/Phaser.Caeras.Scene2D.Camera-pan
 
             //this.cameras.main.pan(703, 0, 20000, 'Elastic');
+            cam = this.cameras.main
 
             diamond = this.physics.add.image(400, -200, 'diamond');
             diamond.setSize(4, 4, true);
             diamond.setScale(.5)
             diamond.setInteractive()
-            cam = this.cameras.main
-
-
-            bank = this.add.image(900, 520, 'bank');
-            bank.setSize(4, 4, true);
-            bank.setScale(.25)
-
+            emitter.startFollow(diamond);
             diamond.on('pointerdown', function (pointer, targets) {
-                var shard = shards.create(400,450, 'star');
+                var shard = shards.create(400, 500, 'diamond');
                 shard.setBounce(0);
-                shard.setCollideWorldBounds(true);
+                //shard.setCollideWorldBounds(true);
+                shard.setBlendMode(Phaser.BlendModes.ADD);
+                shard.setAlpha(0.5);
+                shard.setScale(.05)
                 shard.setVelocity(Phaser.Math.Between(100, 200), Phaser.Math.Between(-500, -900));
+                shard.setInteractive()
                 cam.pan(630, 0, 2000);
+
+                shard.on('pointerdown', function (pointer, targets) {
+                    shard.setVelocity(Phaser.Math.Between(100, 200), Phaser.Math.Between(-500, -900));
+                })
                 //cam.zoomTo(.75)
             });
 
-            emitter.startFollow(diamond);
+
+            banks = this.physics.add.group();
+            //bank = this.physics.add.image(900, 520, 'bank');
+            bank = banks.create(915, 520, 'bank');            
+            //banks.add(bank)            
+            bank.setSize(bank.width - 200, bank.height - 200, true);
+            bank.setScale(.25)
+            bank.setImmovable(true);
+            bank.body.allowGravity = false;
+
+
+            this.physics.add.collider(shards, banks, function(shard, bank) {
+                shard.disableBody(true, true);
+                score++
+                updateScore()
+            });
+
 
 
             this.physics.add.collider(shards, platforms, function(shard, platform) {
@@ -181,12 +203,23 @@
             this.physics.add.collider(stars, platforms);
             this.physics.add.overlap(player, stars, collectStar, null, this);
 **/
-            scoreText = this.add.text(16, 416, 'score: 0', { fontSize: '32px', fill: '#000' });
+
+
+            var scoreIcon = this.add.image(900, 30, 'diamond');
+            scoreIcon.setBlendMode(Phaser.BlendModes.ADD);
+            scoreIcon.setAlpha(0.5);
+            scoreIcon.setScale(.1)
+            scoreText = this.add.text(930, 8, '0', { fontSize: '48px', fill: '#000' });
 
             bombs = this.physics.add.group();
             this.physics.add.collider(bombs, platforms);
             this.physics.add.collider(player, bombs, hitBomb, null, this);
         }
+
+        function updateScore() {
+            scoreText.setText(score);
+        }
+
 
         function collectStar(player, star) {
             star.disableBody(true, true);

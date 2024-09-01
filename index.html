@@ -57,11 +57,11 @@
 
             var emitter = particles.createEmitter({
                 speed: 100,
-                scale: { start: 1, end: 0 },
+                scale: { start: 2, end: 0 },
                 blendMode: 'ADD'
             });
 
-            //emitter.startFollow(logo);
+
 
             platforms = this.physics.add.staticGroup();
 
@@ -82,6 +82,7 @@
                 shard.setVelocity(Phaser.Math.Between(100, 200), Phaser.Math.Between(-500, -900));
             });
 
+            emitter.startFollow(diamond);
 
 
             this.physics.add.collider(shards, platforms, function(shard, platform) {

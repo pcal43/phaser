@@ -23,8 +23,8 @@ var config = {
 
 const UNICORN_SPEED = 350
 UNICORN_COST = 3
-const GROUND_LEVEL = 590
-const GROUND_DEPTH = 10
+const GROUND_LEVEL = 580
+const GROUND_DEPTH = 20
 
 var game = new Phaser.Game(config);
 
@@ -34,6 +34,7 @@ var scoreText;
 function preload() {
     this.load.image('space', 'assets/space3.png');
     this.load.image('diamond', 'assets/diamond.png');
+    this.load.image('grass', 'assets/grass.png');    
     this.load.image('bank', 'assets/bank.png');
     this.load.image('red', 'assets/red.png');
     this.load.image('sky', 'assets/sky.png');
@@ -44,8 +45,9 @@ function preload() {
 
 function panCameraTo(camera, newX, newY) {
     camera.pan(newX, newY, 2500, 'Linear', true, function (camera, progress, dx, dy) {
-        my = GROUND_LEVEL / 2 - ((GROUND_LEVEL / 2 - newY) * progress)
-        camera.setZoom(((GROUND_LEVEL / 2)) / (GROUND_LEVEL - my))
+        base = (GROUND_LEVEL + GROUND_DEPTH)
+        my = base / 2 - ((base / 2 - newY) * progress)
+        camera.setZoom(((base / 2)) / (base - my))
     });
 }
 
@@ -140,7 +142,9 @@ function create() {
 
 
 
-    let ground = this.add.rectangle(-2048, GROUND_LEVEL, 4096, GROUND_DEPTH, 0xffffff);
+    ground = this.add.tileSprite(-2048, GROUND_LEVEL, 4096, GROUND_DEPTH, "grass");
+    //ground.setScale(1.5)
+    //let ground = this.add.rectangle(-2048, GROUND_LEVEL, 4096, GROUND_DEPTH, 0xffffff);
     ground.setOrigin(0, 0); // i dont understand this
     platforms.add(ground)
 

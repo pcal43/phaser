@@ -107,13 +107,14 @@ function create() {
     var sky = this.add.image(400, 300, 'sky').setScale(10);
     //sky.setInteractive();
 
-    var particles = this.add.particles('red');
+    //var particles = this.add.particles('red');
 
-    var emitter = this.add.particles({
+    const emitter = this.add.particles(0, 0, "red", {
         speed: 100,
-        scale: { start: 2, end: 0 },
-        blendMode: 'ADD'
-    });
+        scale: { start: 2.5, end: 0 },
+        blendMode: "ADD",
+      });
+          
     var cam = this.cameras.main
 
 

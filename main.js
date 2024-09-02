@@ -38,7 +38,19 @@ var mainCamera
 const DIAMOND_STAGE = 0
 const BANK_STAGE = 1
 const HOUSE_STAGE = 2
+
+
+const SCORE_Y = GROUND_LEVEL - 200
+const SCORE_X = 900
+
+const HOUSE_X = 1200
+const HOUSE_Y = 520
+
+const STATUS_Y = 410
+
 var stage = 0
+
+
 
 
 function preload() {
@@ -49,7 +61,7 @@ function preload() {
     this.load.image('house', 'assets/house.png');    
     this.load.image('red', 'assets/red.png');
     this.load.image('sky', 'assets/sky.png');
-    this.load.spritesheet('unicorn', 'assets/unicorn.png', { frameWidth: 17, frameHeight: 16 });
+    this.load.spritesheet('unicorn', 'assets/unicorn.png', { frameWidth: 16, frameHeight: 16, spacing: 1 });
 }
 
 
@@ -133,12 +145,12 @@ function create() {
     bank.setImmovable(true);
     bank.body.allowGravity = false;
 
-    house = this.physics.add.image(1200, 520, 'house');
-    house.setSize(house.width - 200, house.height - 200, true);
+    house = this.physics.add.image(HOUSE_X, HOUSE_Y, 'house');
     house.setScale(.35)
     house.setImmovable(true);
     house.body.allowGravity = false;
-
+    house.setInteractive()
+    house.on('pointerdown', function (pointer, targets) { tryAddUnicorn() })
 
 
     unicorns = this.physics.add.group();
@@ -191,28 +203,22 @@ function create() {
 
 
 
-    var scoreIcon = this.add.image(900, 30, 'diamond');
+    var scoreIcon = this.add.image(SCORE_X - 30, STATUS_Y, 'diamond');
     scoreIcon.setBlendMode(Phaser.BlendModes.ADD);
     scoreIcon.setAlpha(0.5);
     scoreIcon.setScale(.1)
-    scoreText = this.add.text(930, 8, '0', { fontSize: '48px', fill: '#000' });
+    scoreText = this.add.text(SCORE_X, STATUS_Y - 22, '0', { fontSize: '48px', fill: '#000' });
     scoreText.setText("0")
 
     //unicornButton = this.physics.add.sprite(900, 50, 'unicorn');
-    unicornButton = this.add.sprite(900, 100, 'unicorn');
+    unicornButton = this.add.sprite(HOUSE_X, STATUS_Y, 'unicorn');
     //unicornButton = this.add.sprite(100, 70, 'unicorn');
     //unicornButton.frame = 0
     unicornButton.setScale(3)
     unicornButton.setFlipX(true);
     unicornButton.setInteractive()
-    unicornButton.visible = false
-    costText = this.add.text(930, 100, UNICORN_COST, { fontSize: '24px', fill: '#000' });
-    costText.visible = false
-    costIcon = this.add.image(975, 110, 'diamond');
-    costIcon.setBlendMode(Phaser.BlendModes.ADD);
-    costIcon.setAlpha(0.5);
-    costIcon.setScale(.05)
-    costIcon.visible = false
+    costText = this.add.text(HOUSE_X + 30, STATUS_Y - 4, UNICORN_COST, { fontSize: '32px', fill: '#000' });
+    //constText.setAlign('top')
 
 
 
@@ -220,35 +226,34 @@ function create() {
     phys = this.physics
     unis = unicorns
     unicornButton.on('pointerdown', function (pointer, targets) {
-        if (score >= UNICORN_COST) {
-            updateScore(-UNICORN_COST)
-
-            unicorn = phys.add.sprite(1100, 450, 'unicorn');
-            unis.add(unicorn)
-
-            //var unicorn = unicorns.create(400, 450, 'unicorn');
-
-            unicorn.setBounce(0);
-            unicorn.setScale(4)
-            unicorn.setFlipX(true);
-            unicorn.setVelocity(-350, 0)
-            unicorn.anims.play('right', true);
-
-            UNICORN_COST += 3
-            costText.setText(UNICORN_COST)
-
-        }
+        tryAddUnicorn()
     });
 
+}
+
+function tryAddUnicorn() {
+    if (score >= UNICORN_COST) {
+        // TODO - animate shards flying from bank to house to 'pay' for it
+        updateScore(-UNICORN_COST)
+        unicorn = phys.add.sprite(1200, GROUND_LEVEL - 30, 'unicorn');
+        unis.add(unicorn)
+        unicorn.setBounce(0);
+        unicorn.setScale(4)
+        unicorn.setFlipX(true);
+        unicorn.setVelocity(-350, -400)
+        unicorn.anims.play('right', true);
+        UNICORN_COST += 3
+        costText.setText(UNICORN_COST)
+    }
 }
 
 function updateScore(delta) {
     score += delta
     if (score >= UNICORN_COST) {
         minimumStage(HOUSE_STAGE)
-        unicornButton.visible = true
-        costText.visible = true
-        costIcon.visible = true
+        costText.setColor('#00FF00') 
+    } else {
+        costText.setColor('#FF0000') 
     }
     scoreText.setText(score);
 }

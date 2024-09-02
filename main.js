@@ -13,6 +13,7 @@ var config = {
 
         }
     },
+    pixelArt: true,
     scene: {
         preload: preload,
         create: create,
@@ -24,7 +25,7 @@ var config = {
 const UNICORN_SPEED = 350
 UNICORN_COST = 3
 const GROUND_LEVEL = 580
-const GROUND_DEPTH = 20
+const GROUND_DEPTH = 25
 
 
 

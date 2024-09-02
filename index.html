@@ -59,6 +59,10 @@
             alert('clicked')
         }
 
+        function panCameraTo(x,y) {
+            
+        }
+
         function create() {
             var sky = this.add.image(400, 300, 'sky').setScale(10);
             //sky.setInteractive();
@@ -83,15 +87,16 @@
             //this.cameras.main.setBounds(0, 0, 800, 600, true)
             //this.cameras.main.pan(400, 200, 5000);            
             //this.cameras.main.zoomTo(.50, 5000, 'Linear')
-            /**
-            this.cameras.main.pan(1600, 100, 5000, 'Linear', true, function(camera, progress, x, y) {
+
+            this.cameras.main.pan(400, 100, 5000, 'Linear', true, function(camera, progress, x, y) {
                 console.log('y='+y + 'bounds='+camera.y+' centerY='+camera.centerY)
-                
-                camera.setZoom( (300+y)/300)
-            });**/
-            my = 300
-                        this.cameras.main.centerOn(400, my)
-            this.cameras.main.setZoom( ((GROUND_LEVEL/2) ) / (GROUND_LEVEL - my))
+
+                my = GROUND_LEVEL/2 - ((GROUND_LEVEL/2 - 100) * progress)
+                this.cameras.main.setZoom( ((GROUND_LEVEL/2) ) / (GROUND_LEVEL - my))
+            });
+            //my = 300
+                        //this.cameras.main.centerOn(400, my)
+            //this.cameras.main.setZoom( ((GROUND_LEVEL/2) ) / (GROUND_LEVEL - my))
             
             //this.cameras.main.setZoom(1)
 

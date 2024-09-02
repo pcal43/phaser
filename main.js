@@ -26,25 +26,53 @@ UNICORN_COST = 3
 const GROUND_LEVEL = 580
 const GROUND_DEPTH = 20
 
+
+
 var game = new Phaser.Game(config);
 
 var score = 0
 var scoreText;
+
+var mainCamera
+
+const DIAMOND_STAGE = 0
+const BANK_STAGE = 1
+const HOUSE_STAGE = 2
+var stage = 0
+
 
 function preload() {
     this.load.image('space', 'assets/space3.png');
     this.load.image('diamond', 'assets/diamond.png');
     this.load.image('grass', 'assets/grass.png');    
     this.load.image('bank', 'assets/bank.png');
+    this.load.image('house', 'assets/house.png');    
     this.load.image('red', 'assets/red.png');
     this.load.image('sky', 'assets/sky.png');
-    this.load.image('ground', 'assets/platform.png');
     this.load.spritesheet('unicorn', 'assets/unicorn.png', { frameWidth: 17, frameHeight: 16 });
 }
 
 
-function panCameraTo(camera, newX, newY) {
-    camera.pan(newX, newY, 2500, 'Linear', true, function (camera, progress, dx, dy) {
+
+function minimumStage(minStage) {
+    if (stage < minStage) {
+        switch(minStage) {      
+            case DIAMOND_STAGE:
+                break;
+            case BANK_STAGE:
+                panCameraTo(630, GROUND_LEVEL / 2)
+                break;
+            case HOUSE_STAGE:
+                panCameraTo(800, GROUND_LEVEL / 2 - 100)
+                break;
+        }
+        stage = minStage
+    }
+}
+
+
+function panCameraTo(newX, newY) {
+    mainCamera.pan(newX, newY, 2500, 'Linear', false, function (camera, progress, dx, dy) {
         base = (GROUND_LEVEL + GROUND_DEPTH)
         my = base / 2 - ((base / 2 - newY) * progress)
         camera.setZoom(((base / 2)) / (base - my))
@@ -52,6 +80,8 @@ function panCameraTo(camera, newX, newY) {
 }
 
 function create() {
+    mainCamera = this.cameras.main
+
     var sky = this.add.image(400, 300, 'sky').setScale(10);
     //sky.setInteractive();
 
@@ -65,7 +95,7 @@ function create() {
     var cam = this.cameras.main
 
 
-    platforms = this.physics.add.staticGroup();
+    ground = this.physics.add.staticGroup();
 
     groundShards = this.physics.add.group();
     flyingShards = this.physics.add.group();
@@ -76,7 +106,6 @@ function create() {
     diamond.setScale(.5)
     diamond.setInteractive()
     emitter.startFollow(diamond);
-    var firstShard = true
     diamond.on('pointerdown', function (pointer, targets) {
         var shard = flyingShards.create(400, 500, 'diamond');
         shard.setBounce(0);
@@ -85,11 +114,8 @@ function create() {
         shard.setAlpha(0.5);
         shard.setScale(.05)
         shard.setVelocity(Phaser.Math.Between(100, 200), Phaser.Math.Between(-500, -900));
-        shard.setInteractive()
-        if (firstShard) {
-            panCameraTo(cam, 630, GROUND_LEVEL / 2)
-            firstShard = false
-        }
+        shard.setInteractive()       
+        minimumStage(BANK_STAGE)
 
         shard.on('pointerdown', function (pointer, targets) {
             if (groundShards.contains(shard)) {
@@ -107,6 +133,12 @@ function create() {
     bank.setImmovable(true);
     bank.body.allowGravity = false;
 
+    house = this.physics.add.image(1200, 520, 'house');
+    house.setSize(house.width - 200, house.height - 200, true);
+    house.setScale(.35)
+    house.setImmovable(true);
+    house.body.allowGravity = false;
+
 
 
     unicorns = this.physics.add.group();
@@ -116,7 +148,7 @@ function create() {
     //
     // setup collisions
     //
-    this.physics.add.collider(flyingShards, platforms, function (shard, platform) {
+    this.physics.add.collider(flyingShards, ground, function (shard, platform) {
         flyingShards.remove(shard)
         groundShards.add(shard)
         shard.setVelocity(0, 0)
@@ -125,10 +157,10 @@ function create() {
         shard.disableBody(true, true);
         updateScore(1)
     });
-    this.physics.add.collider(groundShards, platforms);
-    this.physics.add.collider(diamond, platforms);
-    this.physics.add.collider(unicorns, platforms);
-    this.physics.add.collider(returningUnicorns, platforms);
+    this.physics.add.collider(groundShards, ground);
+    this.physics.add.collider(diamond, ground);
+    this.physics.add.collider(unicorns, ground);
+    this.physics.add.collider(returningUnicorns, ground);
     this.physics.add.collider(unicorns, groundShards, function (unicorn, shard) {
         shard.setVelocity(0, 0)
         flyingShards.add(shard)
@@ -142,11 +174,11 @@ function create() {
 
 
 
-    ground = this.add.tileSprite(-2048, GROUND_LEVEL, 4096, GROUND_DEPTH, "grass");
+    grass = this.add.tileSprite(-2048, GROUND_LEVEL, 4096, GROUND_DEPTH, "grass");
     //ground.setScale(1.5)
     //let ground = this.add.rectangle(-2048, GROUND_LEVEL, 4096, GROUND_DEPTH, 0xffffff);
-    ground.setOrigin(0, 0); // i dont understand this
-    platforms.add(ground)
+    grass.setOrigin(0, 0); // i dont understand this
+    ground.add(grass)
 
 
 
@@ -208,16 +240,12 @@ function create() {
         }
     });
 
-
-
-    bombs = this.physics.add.group();
-    this.physics.add.collider(bombs, platforms);
-    //this.physics.add.collider(player, bombs, hitBomb, null, this);
 }
 
 function updateScore(delta) {
     score += delta
     if (score >= UNICORN_COST) {
+        minimumStage(HOUSE_STAGE)
         unicornButton.visible = true
         costText.visible = true
         costIcon.visible = true

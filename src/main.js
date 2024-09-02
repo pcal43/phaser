@@ -1,4 +1,10 @@
 
+
+//import * as Phaser from "phaser";
+
+//import { Preloader } from './scenes/preloader.js';
+import * as Phaser from "phaser";
+
 // 22https://opengameart.org/content/running-unicorn-0
 var config = {
     type: Phaser.AUTO,
@@ -23,18 +29,21 @@ var config = {
 
 
 const UNICORN_SPEED = 350
-UNICORN_COST = 3
+var     UNICORN_COST = 3
 const GROUND_LEVEL = 580
 const GROUND_DEPTH = 25
 
 
+export default new Phaser.Game(config);
+//var game = new Phaser.Game(config);
 
-var game = new Phaser.Game(config);
-
+var phys
 var score = 0
 var scoreText;
-
+var costText;
 var mainCamera
+var unicorns
+var returningUnicorns
 
 const DIAMOND_STAGE = 0
 const BANK_STAGE = 1
@@ -86,8 +95,8 @@ function minimumStage(minStage) {
 
 function panCameraTo(newX, newY) {
     mainCamera.pan(newX, newY, 2500, 'Linear', false, function (camera, progress, dx, dy) {
-        base = (GROUND_LEVEL + GROUND_DEPTH)
-        my = base / 2 - ((base / 2 - newY) * progress)
+        var base = (GROUND_LEVEL + GROUND_DEPTH)
+        var my = base / 2 - ((base / 2 - newY) * progress)
         camera.setZoom(((base / 2)) / (base - my))
     });
 }
@@ -100,7 +109,7 @@ function create() {
 
     var particles = this.add.particles('red');
 
-    var emitter = particles.createEmitter({
+    var emitter = this.add.particles({
         speed: 100,
         scale: { start: 2, end: 0 },
         blendMode: 'ADD'
@@ -108,13 +117,13 @@ function create() {
     var cam = this.cameras.main
 
 
-    ground = this.physics.add.staticGroup();
+    var ground = this.physics.add.staticGroup();
 
-    groundShards = this.physics.add.group();
-    flyingShards = this.physics.add.group();
+    var groundShards = this.physics.add.group();
+    var flyingShards = this.physics.add.group();
 
 
-    diamond = this.physics.add.image(400, -200, 'diamond');
+    var diamond = this.physics.add.image(400, -200, 'diamond');
     diamond.setSize(4, 4, true);
     diamond.setScale(.5)
     diamond.setInteractive()
@@ -140,13 +149,13 @@ function create() {
     });
 
 
-    bank = this.physics.add.image(915, 520, 'bank');
+    var bank = this.physics.add.image(915, 520, 'bank');
     bank.setSize(bank.width - 200, bank.height - 200, true);
     bank.setScale(.25)
     bank.setImmovable(true);
     bank.body.allowGravity = false;
 
-    house = this.physics.add.image(HOUSE_X, HOUSE_Y, 'house');
+    var house = this.physics.add.image(HOUSE_X, HOUSE_Y, 'house');
     house.setScale(.35)
     house.setImmovable(true);
     house.body.allowGravity = false;
@@ -187,7 +196,7 @@ function create() {
 
 
 
-    grass = this.add.tileSprite(-2048, GROUND_LEVEL, 4096, GROUND_DEPTH, "grass");
+    var grass = this.add.tileSprite(-2048, GROUND_LEVEL, 4096, GROUND_DEPTH, "grass");
     //ground.setScale(1.5)
     //let ground = this.add.rectangle(-2048, GROUND_LEVEL, 4096, GROUND_DEPTH, 0xffffff);
     grass.setOrigin(0, 0); // i dont understand this
@@ -212,7 +221,7 @@ function create() {
     scoreText.setText("0")
 
     //unicornButton = this.physics.add.sprite(900, 50, 'unicorn');
-    unicornButton = this.add.sprite(HOUSE_X, STATUS_Y, 'unicorn');
+    var unicornButton = this.add.sprite(HOUSE_X, STATUS_Y, 'unicorn');
     //unicornButton = this.add.sprite(100, 70, 'unicorn');
     //unicornButton.frame = 0
     unicornButton.setScale(3)
@@ -225,7 +234,7 @@ function create() {
 
 
     phys = this.physics
-    unis = unicorns
+    
     unicornButton.on('pointerdown', function (pointer, targets) {
         tryAddUnicorn()
     });
@@ -236,8 +245,8 @@ function tryAddUnicorn() {
     if (score >= UNICORN_COST) {
         // TODO - animate shards flying from bank to house to 'pay' for it
         updateScore(-UNICORN_COST)
-        unicorn = phys.add.sprite(1200, GROUND_LEVEL - 30, 'unicorn');
-        unis.add(unicorn)
+        var unicorn = phys.add.sprite(1200, GROUND_LEVEL - 30, 'unicorn');
+        unicorns.add(unicorn)
         unicorn.setBounce(0);
         unicorn.setScale(4)
         unicorn.setFlipX(true);

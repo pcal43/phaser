@@ -89,8 +89,6 @@ function create() {
             firstShard = false
         }
 
-        //cam.pan(630, , 2000);
-
         shard.on('pointerdown', function (pointer, targets) {
             if (groundShards.contains(shard)) {
                 groundShards.remove(shard)
@@ -98,24 +96,14 @@ function create() {
                 shard.setVelocity(Phaser.Math.Between(100, 200), Phaser.Math.Between(-500, -900))
             }
         })
-        //cam.zoomTo(.75)
     });
 
 
-    banks = this.physics.add.group();
-    //bank = this.physics.add.image(900, 520, 'bank');
-    bank = banks.create(915, 520, 'bank');
-    //banks.add(bank)            
+    bank = this.physics.add.image(915, 520, 'bank');
     bank.setSize(bank.width - 200, bank.height - 200, true);
     bank.setScale(.25)
     bank.setImmovable(true);
     bank.body.allowGravity = false;
-
-
-    this.physics.add.collider(flyingShards, banks, function (shard, bank) {
-        shard.disableBody(true, true);
-        updateScore(1)
-    });
 
 
 
@@ -123,12 +111,18 @@ function create() {
     returningUnicorns = this.physics.add.group();
 
 
+    //
+    // setup collisions
+    //
     this.physics.add.collider(flyingShards, platforms, function (shard, platform) {
         flyingShards.remove(shard)
         groundShards.add(shard)
         shard.setVelocity(0, 0)
     });
-
+    this.physics.add.collider(bank, flyingShards, function (bank, shard) {
+        shard.disableBody(true, true);
+        updateScore(1)
+    });
     this.physics.add.collider(groundShards, platforms);
     this.physics.add.collider(diamond, platforms);
     this.physics.add.collider(unicorns, platforms);
@@ -147,7 +141,7 @@ function create() {
 
 
     let ground = this.add.rectangle(-2048, GROUND_LEVEL, 4096, GROUND_DEPTH, 0xffffff);
-    ground.setOrigin(0, 0);
+    ground.setOrigin(0, 0); // i dont understand this
     platforms.add(ground)
 
 

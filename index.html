@@ -59,8 +59,12 @@
             alert('clicked')
         }
 
-        function panCameraTo(x,y) {
-            
+
+        function panCameraTo(camera, newX, newY) {
+            camera.pan(newX, newY, 2500, 'Linear', true, function(camera, progress, dx, dy) {
+                my = GROUND_LEVEL/2 - ((GROUND_LEVEL/2 - newY) * progress)
+                camera.setZoom( ((GROUND_LEVEL/2) ) / (GROUND_LEVEL - my))
+            });
         }
 
         function create() {
@@ -74,6 +78,7 @@
                 scale: { start: 2, end: 0 },
                 blendMode: 'ADD'
             });
+            var cam = this.cameras.main
 
 
             platforms = this.physics.add.staticGroup();
@@ -88,12 +93,15 @@
             //this.cameras.main.pan(400, 200, 5000);            
             //this.cameras.main.zoomTo(.50, 5000, 'Linear')
 
+            //panCameraTo(this.cameras.main, 400, 100)
+/**
             this.cameras.main.pan(400, 100, 5000, 'Linear', true, function(camera, progress, x, y) {
                 console.log('y='+y + 'bounds='+camera.y+' centerY='+camera.centerY)
 
                 my = GROUND_LEVEL/2 - ((GROUND_LEVEL/2 - 100) * progress)
                 this.cameras.main.setZoom( ((GROUND_LEVEL/2) ) / (GROUND_LEVEL - my))
             });
+            **/
             //my = 300
                         //this.cameras.main.centerOn(400, my)
             //this.cameras.main.setZoom( ((GROUND_LEVEL/2) ) / (GROUND_LEVEL - my))
@@ -110,13 +118,13 @@
             //https://newdocs.phaser.io/docs/3.70.0/focus/Phaser.Caeras.Scene2D.Camera-pan
 
             //this.cameras.main.pan(703, 0, 20000, 'Elastic');
-            cam = this.cameras.main
 
             diamond = this.physics.add.image(400, -200, 'diamond');
             diamond.setSize(4, 4, true);
             diamond.setScale(.5)
             diamond.setInteractive()
             emitter.startFollow(diamond);
+            var firstShard = true
             diamond.on('pointerdown', function (pointer, targets) {
                 var shard = flyingShards.create(400, 500, 'diamond');
                 shard.setBounce(0);
@@ -126,7 +134,12 @@
                 shard.setScale(.05)
                 shard.setVelocity(Phaser.Math.Between(100, 200), Phaser.Math.Between(-500, -900));
                 shard.setInteractive()
-                cam.pan(630, 0, 2000);
+                if (firstShard) {
+                     panCameraTo(cam, 630, GROUND_LEVEL/2)
+                     firstShard = false
+                }
+
+                //cam.pan(630, , 2000);
 
                 shard.on('pointerdown', function (pointer, targets) {
                     if (groundShards.contains(shard)) {

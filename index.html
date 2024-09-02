@@ -8,6 +8,8 @@
 <body style="background-color: #000000;">
 
     <script>
+
+        // 22https://opengameart.org/content/running-unicorn-0
         var config = {
             type: Phaser.AUTO,
             width: 800,
@@ -16,7 +18,7 @@
             physics: {
                 default: 'arcade',
                 arcade: {
-                    debug: true,
+                    //debug: true,
                     gravity: { y: 900 }
 
                 }
@@ -30,6 +32,7 @@
 
 
         const UNICORN_SPEED = 350
+        UNICORN_COST = 3
 
         var game = new Phaser.Game(config);
 
@@ -185,10 +188,10 @@
 
 
 
-            player = this.physics.add.sprite(100, 450, 'dude');
-            player.setInteractive()
-            player.setBounce(0.2);
-            player.setCollideWorldBounds(true);
+          //player = this.physics.add.sprite(100, 450, 'dude');
+            //player.setInteractive()
+            //player.setBounce(0.2);
+            //player.setCollideWorldBounds(true);
 
 
             this.anims.create({
@@ -211,7 +214,7 @@
                 repeat: -1
             });
 
-            this.physics.add.collider(player, platforms);
+            //this.physics.add.collider(player, platforms);
             /**
                         stars = this.physics.add.group({
                             key: 'star',
@@ -232,6 +235,7 @@
             scoreIcon.setAlpha(0.5);
             scoreIcon.setScale(.1)
             scoreText = this.add.text(930, 8, '0', { fontSize: '48px', fill: '#000' });
+            scoreText.setText("0")
 
             //unicornButton = this.physics.add.sprite(900, 50, 'unicorn');
             unicornButton = this.add.sprite(900, 100, 'unicorn');
@@ -240,21 +244,23 @@
             unicornButton.setScale(3)
             unicornButton.setFlipX(true);
             unicornButton.setInteractive()
-            this.add.text(930, 100, '10', { fontSize: '24px', fill: '#000' });
-            var costIcon = this.add.image(975, 110, 'diamond');
+            unicornButton.visible = false
+            costText = this.add.text(930, 100, UNICORN_COST, { fontSize: '24px', fill: '#000' });
+            costText.visible = false
+             costIcon = this.add.image(975, 110, 'diamond');
             costIcon.setBlendMode(Phaser.BlendModes.ADD);
             costIcon.setAlpha(0.5);
             costIcon.setScale(.05)
+            costIcon.visible = false
 
 
-            this.add.text(930, 8, '0', { fontSize: '48px', fill: '#000' });
 
 
             phys = this.physics
             unis = unicorns
             unicornButton.on('pointerdown', function (pointer, targets) {
-                if (true || score >= 10) {
-                    updateScore(-10)
+                if (score >= UNICORN_COST) {
+                    updateScore(-UNICORN_COST)
 
                     unicorn = phys.add.sprite(1100, 450, 'unicorn');
                     unis.add(unicorn)
@@ -266,6 +272,10 @@
                     unicorn.setFlipX(true);
                     unicorn.setVelocity(-350, 0)
                     unicorn.anims.play('right', true);
+                    
+                    UNICORN_COST += 3
+                    costText.setText(UNICORN_COST)
+
                 }
             });
 
@@ -273,11 +283,16 @@
 
             bombs = this.physics.add.group();
             this.physics.add.collider(bombs, platforms);
-            this.physics.add.collider(player, bombs, hitBomb, null, this);
+            //this.physics.add.collider(player, bombs, hitBomb, null, this);
         }
 
         function updateScore(delta) {
             score += delta
+            if (score >= UNICORN_COST) {
+                unicornButton.visible = true
+                costText.visible = true
+                costIcon.visible = true
+            }
             scoreText.setText(score);
         }
 
@@ -303,6 +318,7 @@
             }
         }
 
+        /**
         function hitBomb(player, bomb) {
             this.physics.pause();
 
@@ -312,6 +328,7 @@
 
             gameOver = true;
         }
+            **/
 
         function update() {
 
@@ -335,7 +352,7 @@
             });
 
 
-
+/**
 
             //    this.input.onObjectClicked('gameobjectdown',this.onObjectClicked); 
 
@@ -360,6 +377,7 @@
             if (cursors.up.isDown) {
                 player.setVelocityY(-330);
             }
+                **/
         }
 
 
